@@ -57,7 +57,8 @@ let newImage = contrast(rgba).toUIImage()
 ![](art/03_grab_r.png)
 
 ```swift
-
+func grabR(image: RGBAImage) -> RGBAImage {
+    var outImage = image
     outImage.process { (var pixel) -> Pixel in
         pixel.R = pixel.R
         pixel.G = 0
