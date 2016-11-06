@@ -24,8 +24,10 @@ let avgB = totalB / pixelCount
 
 
 
-func contrast(image: RGBAImage) -> RGBAImage {
-    image.process { (var pixel) -> Pixel in
+func contrast(_ image: RGBAImage) -> RGBAImage {
+    
+    image.process { (pixel) -> Pixel in
+        var pixel = pixel
         let deltaR = Int(pixel.R) - avgR
         let deltaG = Int(pixel.G) - avgG
         let deltaB = Int(pixel.B) - avgB

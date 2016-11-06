@@ -6,6 +6,10 @@ import UIKit
 public struct BytePixel {
     private var value: UInt8
     
+    public init(value : UInt8) {
+        self.value = value
+    }
+    
     //red
     public var C: UInt8 {
         get { return value }
@@ -14,15 +18,7 @@ public struct BytePixel {
     
     public var Cf: Double {
         get { return Double(self.C) / 255.0 }
-        set {
-            if newValue < 0.0 {
-                self.C = 0
-            } else if newValue > 1.0 {
-                self.C = 255
-            } else {
-                self.C = UInt8(newValue * 255.0)
-            }
-        }
+        set { self.C = UInt8(max(min(newValue, 1.0), 0.0) * 255.0) }
     }
 }
 
@@ -33,7 +29,7 @@ public struct ByteImage {
     
     public init?(image: UIImage) {
         // CGImage로 변환이 가능해야 한다.
-        guard let cgImage = image.CGImage else {
+        guard let cgImage = image.cgImage else {
             return nil
         }
         
@@ -43,20 +39,20 @@ public struct ByteImage {
         
         // 1 * width * height 크기의 버퍼를 생성한다.
         let bytesPerRow = width * 1
-        let imageData = UnsafeMutablePointer<BytePixel>.alloc(width * height)
+        let imageData = UnsafeMutablePointer<BytePixel>.allocate(capacity: width * height)
         
         // 색상공간은 Device의 것을 따른다
         let colorSpace = CGColorSpaceCreateDeviceGray()
         
         // BGRA로 비트맵을 만든다
-        let bitmapInfo: UInt32 = CGBitmapInfo.ByteOrderDefault.rawValue
+        let bitmapInfo: UInt32 = CGBitmapInfo().rawValue
         // 비트맵 생성
-        guard let imageContext = CGBitmapContextCreate(imageData, width, height, 8, bytesPerRow, colorSpace, bitmapInfo) else {
+        guard let imageContext = CGContext(data: imageData, width: width, height: height, bitsPerComponent: 8, bytesPerRow: bytesPerRow, space: colorSpace, bitmapInfo: bitmapInfo) else {
             return nil
         }
         
         // cgImage를 imageData에 채운다.
-        CGContextDrawImage(imageContext, CGRect(origin: CGPointZero, size: image.size), cgImage)
+        imageContext.draw(cgImage, in: CGRect(origin: .zero, size: image.size))
         
         // 이미지 화소의 배열 주소를 pixels에 담는다
         pixels = UnsafeMutableBufferPointer<BytePixel>(start: imageData, count: width * height)
@@ -81,16 +77,18 @@ public struct ByteImage {
     
     public func toUIImage() -> UIImage? {
         let colorSpace = CGColorSpaceCreateDeviceGray()
-        let bitmapInfo: UInt32 = CGBitmapInfo.ByteOrderDefault.rawValue
+        let bitmapInfo: UInt32 = CGBitmapInfo().rawValue
         let bytesPerRow = width * 1
         
         
-        let imageContext = CGBitmapContextCreateWithData(pixels.baseAddress, width, height, 8, bytesPerRow, colorSpace, bitmapInfo, nil, nil)
-        guard let cgImage = CGBitmapContextCreateImage(imageContext) else {
+        guard let imageContext = CGContext(data: pixels.baseAddress, width: width, height: height, bitsPerComponent: 8, bytesPerRow: bytesPerRow, space: colorSpace, bitmapInfo: bitmapInfo, releaseCallback: nil, releaseInfo: nil) else {
+            return nil
+        }
+        guard let cgImage = imageContext.makeImage() else {
             return nil
         }
         
-        let image = UIImage(CGImage: cgImage)
+        let image = UIImage(cgImage: cgImage)
         return image
     }
     
@@ -112,7 +110,7 @@ public struct ByteImage {
         pixels[address] = pixel
     }
     
-    public mutating func process( functor : (BytePixel -> BytePixel) ) {
+    public mutating func process( functor : ((BytePixel) -> BytePixel) ) {
         for y in 0..<height {
             for x in 0..<width {
                 let index = y * width + x
@@ -121,14 +119,14 @@ public struct ByteImage {
         }
     }
     
-    private static func newUIImage(width width: Int, height: Int) -> UIImage {
-        let size = CGSizeMake(CGFloat(width), CGFloat(height));
+    private static func newUIImage(width: Int, height: Int) -> UIImage {
+        let size = CGSize(width: CGFloat(width), height: CGFloat(height));
         UIGraphicsBeginImageContextWithOptions(size, true, 0);
-        UIColor.blackColor().setFill()
-        UIRectFill(CGRectMake(0, 0, size.width, size.height));
+        UIColor.black.setFill()
+        UIRectFill(CGRect(x: 0, y: 0, width: size.width, height: size.height))
         let image = UIGraphicsGetImageFromCurrentImageContext();
         UIGraphicsEndImageContext();
-        return image
+        return image!
     }
 }
 

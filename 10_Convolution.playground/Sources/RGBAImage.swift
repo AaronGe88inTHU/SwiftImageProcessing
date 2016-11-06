@@ -6,79 +6,64 @@ public struct Pixel {
     //red
     public var R: UInt8 {
         get { return UInt8(value & 0xFF) }
-        set { value = UInt32(newValue) | (value & 0xFFFFFF00) }
+        set {
+            let v = max(min(newValue, 255), 0)
+            value = UInt32(v) | (value & 0xFFFFFF00)
+        }
     }
     
     //green
     public var G: UInt8 {
         get { return UInt8((value >> 8) & 0xFF) }
-        set { value = (UInt32(newValue) << 8) | (value & 0xFFFF00FF) }
+        set {
+            let v = max(min(newValue, 255), 0)
+            value = (UInt32(v) << 8) | (value & 0xFFFF00FF)
+        }
     }
     
     //blue
     public var B: UInt8 {
         get { return UInt8((value >> 16) & 0xFF) }
-        set { value = (UInt32(newValue) << 16) | (value & 0xFF00FFFF) }
+        set {
+            let v = max(min(newValue, 255), 0)
+            value = (UInt32(v) << 16) | (value & 0xFF00FFFF)
+        }
     }
     
     //alpha
     public var A: UInt8 {
         get { return UInt8((value >> 24) & 0xFF) }
-        set { value = (UInt32(newValue) << 24) | (value & 0x00FFFFFF) }
+        set {
+            let v = max(min(newValue, 255), 0)
+            value = (UInt32(v) << 24) | (value & 0x00FFFFFF)
+        }
     }
     
     public var Rf: Double {
         get { return Double(self.R) / 255.0 }
         set {
-            
-            // overflow에 대한 방어 코드를 적어줘야 한다,
-            if newValue < 0.0 {
-                self.R = 0
-            } else if newValue > 1.0 {
-                self.R = 255
-            } else {
-                self.R = UInt8(newValue * 255.0)
-            }
+            self.R = UInt8(max(min(newValue, 1.0), 0.0) * 255.0)
         }
     }
     
     public var Gf: Double {
         get { return Double(self.G) / 255.0 }
         set {
-            if newValue < 0.0 {
-                self.G = 0
-            } else if newValue > 1.0 {
-                self.G = 255
-            } else {
-                self.G = UInt8(newValue * 255.0)
-            }
+            self.G = UInt8(max(min(newValue, 1.0), 0.0) * 255.0)
         }
     }
     
     public var Bf: Double {
         get { return Double(self.B) / 255.0 }
         set {
-            
-            if newValue < 0.0 {
-                self.B = 0
-            } else if newValue > 1.0 {
-                self.B = 255
-            } else {
-                self.B = UInt8(newValue * 255.0)
-            }
+            self.B = UInt8(max(min(newValue, 1.0), 0.0) * 255.0)
         }
     }
     
     public var Af: Double {
         get { return Double(self.A) / 255.0 }
         set {
-            if newValue < 0.0 {
-                self.A = 0
-            } else if newValue > 1.0 {
-                self.A = 255
-            } else {
-                self.A = UInt8(newValue * 255.0)
-            }
+            self.A = UInt8(max(min(newValue, 1.0), 0.0) * 255.0)
         }
     }
 }
@@ -90,7 +75,7 @@ public struct RGBAImage {
     
     public init?(image: UIImage) {
         // CGImage로 변환이 가능해야 한다.
-        guard let cgImage = image.CGImage else {
+        guard let cgImage = image.cgImage else {
             return nil
         }
         
@@ -100,24 +85,23 @@ public struct RGBAImage {
         
         // 4 * width * height 크기의 버퍼를 생성한다.
         let bytesPerRow = width * 4
-        let imageData = UnsafeMutablePointer<Pixel>.alloc(width * height)
+        let imageData = UnsafeMutablePointer<Pixel>.allocate(capacity: width * height)
         
         // 색상공간은 Device의 것을 따른다
         let colorSpace = CGColorSpaceCreateDeviceRGB()
         
         // BGRA로 비트맵을 만든다
-        var bitmapInfo: UInt32 = CGBitmapInfo.ByteOrder32Big.rawValue
-        bitmapInfo = bitmapInfo | CGImageAlphaInfo.PremultipliedLast.rawValue & CGBitmapInfo.AlphaInfoMask.rawValue
+        var bitmapInfo: UInt32 = CGBitmapInfo.byteOrder32Big.rawValue
+        bitmapInfo = bitmapInfo | CGImageAlphaInfo.premultipliedLast.rawValue & CGBitmapInfo.alphaInfoMask.rawValue
         
         // 비트맵 생성
-        guard let imageContext = CGBitmapContextCreate(imageData, width, height, 8, bytesPerRow, colorSpace, bitmapInfo) else {
+        guard let imageContext = CGContext(data: imageData, width: width, height: height, bitsPerComponent: 8, bytesPerRow: bytesPerRow, space: colorSpace, bitmapInfo: bitmapInfo) else {
             return nil
         }
         
         // cgImage를 imageData에 채운다.
-        CGContextDrawImage(imageContext, CGRect(origin: CGPointZero, size: image.size), cgImage)
+        imageContext.draw(cgImage, in: CGRect(origin: .zero, size: image.size))
         
-        // 이미지 화소의 배열 주소를 pixels에 담는다
         pixels = UnsafeMutableBufferPointer<Pixel>(start: imageData, count: width * height)
     }
     
@@ -140,21 +124,24 @@ public struct RGBAImage {
     
     public func toUIImage() -> UIImage? {
         let colorSpace = CGColorSpaceCreateDeviceRGB()
-        var bitmapInfo: UInt32 = CGBitmapInfo.ByteOrder32Big.rawValue
+        var bitmapInfo: UInt32 = CGBitmapInfo.byteOrder32Big.rawValue
         let bytesPerRow = width * 4
         
-        bitmapInfo |= CGImageAlphaInfo.PremultipliedLast.rawValue & CGBitmapInfo.AlphaInfoMask.rawValue
+        bitmapInfo |= CGImageAlphaInfo.premultipliedLast.rawValue & CGBitmapInfo.alphaInfoMask.rawValue
         
-        let imageContext = CGBitmapContextCreateWithData(pixels.baseAddress, width, height, 8, bytesPerRow, colorSpace, bitmapInfo, nil, nil)
-        guard let cgImage = CGBitmapContextCreateImage(imageContext) else {
+        guard let imageContext = CGContext(data: pixels.baseAddress, width: width, height: height, bitsPerComponent: 8, bytesPerRow: bytesPerRow, space: colorSpace, bitmapInfo: bitmapInfo, releaseCallback: nil, releaseInfo: nil) else {
             return nil
         }
         
-        let image = UIImage(CGImage: cgImage)
+        guard let cgImage = imageContext.makeImage() else {
+            return nil
+        }
+        
+        let image = UIImage(cgImage: cgImage)
         return image
     }
     
-    public func pixel(x : Int, _ y : Int) -> Pixel? {
+    public func pixel(_ x : Int, _ y : Int) -> Pixel? {
         guard x >= 0 && x < width && y >= 0 && y < height else {
             return nil
         }
@@ -163,7 +150,7 @@ public struct RGBAImage {
         return pixels[address]
     }
     
-    public mutating func pixel(x : Int, _ y : Int, _ pixel: Pixel) {
+    public mutating func pixel(_ x : Int, _ y : Int, _ pixel: Pixel) {
         guard x >= 0 && x < width && y >= 0 && y < height else {
             return
         }
@@ -172,11 +159,12 @@ public struct RGBAImage {
         pixels[address] = pixel
     }
     
-    public mutating func process( functor : (Pixel -> Pixel) ) {
+    public mutating func process( functor : ((Pixel) -> Pixel) ) {
         for y in 0..<height {
             for x in 0..<width {
                 let index = y * width + x
-                pixels[index] = functor(pixels[index])
+                let outPixel = functor(pixels[index])
+                pixels[index] = outPixel
             }
         }
     }
@@ -190,19 +178,14 @@ public struct RGBAImage {
         }
     }
     
-    private static func newUIImage(width width: Int, height: Int) -> UIImage {
-        let size = CGSizeMake(CGFloat(width), CGFloat(height));
+    private static func newUIImage(width: Int, height: Int) -> UIImage {
+        let size = CGSize(width: CGFloat(width), height: CGFloat(height));
         UIGraphicsBeginImageContextWithOptions(size, true, 0);
-        UIColor.blackColor().setFill()
-        UIRectFill(CGRectMake(0, 0, size.width, size.height));
+        UIColor.black.setFill()
+        UIRectFill(CGRect(x: 0, y: 0, width: size.width, height: size.height))
         let image = UIGraphicsGetImageFromCurrentImageContext();
         UIGraphicsEndImageContext();
-        return image
+        return image!
     }
-    
-    
-    
-    
-    
 }
 

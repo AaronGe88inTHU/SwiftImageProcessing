@@ -2,9 +2,10 @@
 
 import UIKit
 
-func gray1(image: RGBAImage) -> RGBAImage {
+func gray1(_ image: RGBAImage) -> RGBAImage {
     var outImage = image
-    outImage.process { (var pixel) -> Pixel in
+    outImage.process { (pixel) -> Pixel in
+        var pixel = pixel
         let result = pixel.Rf*0.2999 + pixel.Gf*0.587 + pixel.Bf*0.114
         pixel.Rf = result
         pixel.Gf = result
@@ -14,9 +15,10 @@ func gray1(image: RGBAImage) -> RGBAImage {
     return outImage
 }
 
-func gray2(image: RGBAImage) -> RGBAImage {
+func gray2(_ image: RGBAImage) -> RGBAImage {
     var outImage = image
-    outImage.process { (var pixel) -> Pixel in
+    outImage.process { (pixel) -> Pixel in
+        var pixel = pixel
         let result = (pixel.Rf + pixel.Gf + pixel.Bf) / 3.0
         pixel.Rf = result
         pixel.Gf = result
@@ -26,9 +28,10 @@ func gray2(image: RGBAImage) -> RGBAImage {
     return outImage
 }
 
-func gray3(image: RGBAImage) -> RGBAImage {
+func gray3(_ image: RGBAImage) -> RGBAImage {
     var outImage = image
-    outImage.process { (var pixel) -> Pixel in
+    outImage.process { (pixel) -> Pixel in
+        var pixel = pixel
         pixel.R = pixel.G
         pixel.G = pixel.G
         pixel.B = pixel.G
@@ -37,9 +40,10 @@ func gray3(image: RGBAImage) -> RGBAImage {
     return outImage
 }
 
-func gray4(image: RGBAImage) -> RGBAImage {
+func gray4(_ image: RGBAImage) -> RGBAImage {
     var outImage = image
-    outImage.process { (var pixel) -> Pixel in
+    outImage.process { (pixel) -> Pixel in
+        var pixel = pixel
         let result = pixel.Rf*0.212671 + pixel.Gf*0.715160 + pixel.Bf*0.071169
         pixel.Rf = result
         pixel.Gf = result
@@ -49,9 +53,10 @@ func gray4(image: RGBAImage) -> RGBAImage {
     return outImage
 }
 
-func gray5(image: RGBAImage) -> RGBAImage {
+func gray5(_ image: RGBAImage) -> RGBAImage {
     var outImage = image
-    outImage.process { (var pixel) -> Pixel in
+    outImage.process { (pixel) -> Pixel in
+        var pixel = pixel
         let result = sqrt(pow(pixel.Rf, 2) + pow(pixel.Rf, 2) + pow(pixel.Rf, 2))/sqrt(3.0)
         pixel.Rf = result
         pixel.Gf = result

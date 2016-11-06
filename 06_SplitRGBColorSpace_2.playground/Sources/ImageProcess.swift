@@ -2,9 +2,10 @@ import Foundation
 
 public class ImageProcess {
     
-    public static func grabR(image: RGBAImage) -> RGBAImage {
+    public static func grabR(_ image: RGBAImage) -> RGBAImage {
         var outImage = image
-        outImage.process { (var pixel) -> Pixel in
+        outImage.process { (pixel) -> Pixel in
+            var pixel = pixel
             pixel.R = pixel.R
             pixel.G = 0
             pixel.B = 0
@@ -13,9 +14,10 @@ public class ImageProcess {
         return outImage
     }
     
-    public static func grabG(image: RGBAImage) -> RGBAImage {
+    public static func grabG(_ image: RGBAImage) -> RGBAImage {
         var outImage = image
-        outImage.process { (var pixel) -> Pixel in
+        outImage.process { (pixel) -> Pixel in
+            var pixel = pixel
             pixel.R = 0
             pixel.G = pixel.G
             pixel.B = 0
@@ -24,9 +26,10 @@ public class ImageProcess {
         return outImage
     }
     
-    public static func grabB(image: RGBAImage) -> RGBAImage {
+    public static func grabB(_ image: RGBAImage) -> RGBAImage {
         var outImage = image
-        outImage.process { (var pixel) -> Pixel in
+        outImage.process { (pixel) -> Pixel in
+            var pixel = pixel
             pixel.R = 0
             pixel.G = 0
             pixel.B = pixel.B
@@ -35,7 +38,7 @@ public class ImageProcess {
         return outImage
     }
     
-    public static func composite(rgbaImageList: RGBAImage...) -> RGBAImage {
+    public static func composite(_ rgbaImageList: RGBAImage...) -> RGBAImage {
         let result : RGBAImage = RGBAImage(width:rgbaImageList[0].width, height: rgbaImageList[0].height)
         for y in 0..<result.height {
             for x in 0..<result.width {
@@ -55,8 +58,9 @@ public class ImageProcess {
         }
         return result
     }
+
     
-    public static func composite(byteImageList: ByteImage...) -> RGBAImage {
+    public static func composite(_ byteImageList: ByteImage...) -> RGBAImage {
         let result : RGBAImage = RGBAImage(width:byteImageList[0].width, height: byteImageList[0].height)
         for y in 0..<result.height {
             for x in 0..<result.width {
@@ -64,7 +68,7 @@ public class ImageProcess {
                 let index = y * result.width + x
                 var pixel = result.pixels[index]
                 
-                for (imageIndex, byte) in byteImageList.enumerate() {
+                for (imageIndex, byte) in byteImageList.enumerated() {
 
                     let bytePixel = byte.pixels[index]
                     switch imageIndex % 3 {
@@ -85,9 +89,10 @@ public class ImageProcess {
         return result
     }
     
-    public static func gray1(image: RGBAImage) -> RGBAImage {
+    public static func gray1(_ image: RGBAImage) -> RGBAImage {
         var outImage = image
-        outImage.process { (var pixel) -> Pixel in
+        outImage.process { (pixel) -> Pixel in
+            var pixel = pixel
             let result = pixel.Rf*0.2999 + pixel.Gf*0.587 + pixel.Bf*0.114
             pixel.Rf = result
             pixel.Gf = result
@@ -97,9 +102,10 @@ public class ImageProcess {
         return outImage
     }
     
-    public static func gray2(image: RGBAImage) -> RGBAImage {
+    public static func gray2(_ image: RGBAImage) -> RGBAImage {
         var outImage = image
-        outImage.process { (var pixel) -> Pixel in
+        outImage.process { (pixel) -> Pixel in
+            var pixel = pixel
             let result = (pixel.Rf + pixel.Gf + pixel.Bf) / 3.0
             pixel.Rf = result
             pixel.Gf = result
@@ -109,9 +115,10 @@ public class ImageProcess {
         return outImage
     }
     
-    public static func gray3(image: RGBAImage) -> RGBAImage {
+    public static func gray3(_ image: RGBAImage) -> RGBAImage {
         var outImage = image
-        outImage.process { (var pixel) -> Pixel in
+        outImage.process { (pixel) -> Pixel in
+            var pixel = pixel
             pixel.R = pixel.G
             pixel.G = pixel.G
             pixel.B = pixel.G
@@ -120,9 +127,10 @@ public class ImageProcess {
         return outImage
     }
     
-    public static func gray4(image: RGBAImage) -> RGBAImage {
+    public static func gray4(_ image: RGBAImage) -> RGBAImage {
         var outImage = image
-        outImage.process { (var pixel) -> Pixel in
+        outImage.process { (pixel) -> Pixel in
+            var pixel = pixel
             let result = pixel.Rf*0.212671 + pixel.Gf*0.715160 + pixel.Bf*0.071169
             pixel.Rf = result
             pixel.Gf = result
@@ -132,9 +140,10 @@ public class ImageProcess {
         return outImage
     }
     
-    public static func gray5(image: RGBAImage) -> RGBAImage {
+    public static func gray5(_ image: RGBAImage) -> RGBAImage {
         var outImage = image
-        outImage.process { (var pixel) -> Pixel in
+        outImage.process { (pixel) -> Pixel in
+            var pixel = pixel
             let result = sqrt(pow(pixel.Rf, 2) + pow(pixel.Rf, 2) + pow(pixel.Rf, 2))/sqrt(3.0)
             pixel.Rf = result
             pixel.Gf = result
@@ -145,7 +154,7 @@ public class ImageProcess {
     }
     
     
-    public static func splitRGB(rgba: RGBAImage) -> (ByteImage, ByteImage, ByteImage) {
+    public static func splitRGB(_ rgba: RGBAImage) -> (ByteImage, ByteImage, ByteImage) {
         let R = ByteImage(width: rgba.width, height: rgba.height)
         let G = ByteImage(width: rgba.width, height: rgba.height)
         let B = ByteImage(width: rgba.width, height: rgba.height)
