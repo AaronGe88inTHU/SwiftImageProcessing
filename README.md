@@ -2,6 +2,9 @@
 
 This project contains swift playgrounds that demonstrate how to do pixel operations in swift.
 
+ * Swift3 : checkout master branch
+ * Swift2.x : checkout syntax/swift2.x branch
+
 ## Thanks to RGBAImage
 
 * [http://mhorga.org/2015/10/19/image-processing-in-ios-part-3.html](http://mhorga.org/2015/10/19/image-processing-in-ios-part-3.html)
