@@ -2,9 +2,10 @@
 
 import UIKit
 
-func grabR(image: RGBAImage) -> RGBAImage {
+func grabR(_ image: RGBAImage) -> RGBAImage {
     var outImage = image
-    outImage.process { (var pixel) -> Pixel in
+    outImage.process { (pixel) -> Pixel in
+        var pixel = pixel
         pixel.R = pixel.R
         pixel.G = 0
         pixel.B = 0
@@ -13,9 +14,10 @@ func grabR(image: RGBAImage) -> RGBAImage {
     return outImage
 }
 
-func grabG(image: RGBAImage) -> RGBAImage {
+func grabG(_ image: RGBAImage) -> RGBAImage {
     var outImage = image
-    outImage.process { (var pixel) -> Pixel in
+    outImage.process { (pixel) -> Pixel in
+        var pixel = pixel
         pixel.R = 0
         pixel.G = pixel.G
         pixel.B = 0
@@ -24,9 +26,10 @@ func grabG(image: RGBAImage) -> RGBAImage {
     return outImage
 }
 
-func grabB(image: RGBAImage) -> RGBAImage {
+func grabB(_ image: RGBAImage) -> RGBAImage {
     var outImage = image
-    outImage.process { (var pixel) -> Pixel in
+    outImage.process { (pixel) -> Pixel in
+        var pixel = pixel
         pixel.R = 0
         pixel.G = 0
         pixel.B = pixel.B

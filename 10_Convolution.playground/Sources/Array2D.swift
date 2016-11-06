@@ -8,7 +8,7 @@ public class Array2D<T: Equatable> {
     public init(cols:Int, rows:Int, _ defaultValue:T){
         self.cols = cols
         self.rows = rows
-        matrix = Array(count:cols*rows,repeatedValue:defaultValue)
+        matrix = Array(repeating:defaultValue,count:cols*rows)
     }
     
     public  init(cols:Int, rows:Int, _ elements : [T]) {
@@ -39,7 +39,7 @@ public class Array2D<T: Equatable> {
     }
     
     public func contains(element: T) -> Bool {
-        return matrix.indexOf(element) != nil
+        return matrix.index(of: element) != nil
     }
     
     public func indexOf(element: T) -> (col: Int, row: Int)? {

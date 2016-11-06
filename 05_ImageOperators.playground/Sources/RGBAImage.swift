@@ -55,7 +55,7 @@ public struct RGBAImage {
     
     public init?(image: UIImage) {
         // CGImage로 변환이 가능해야 한다.
-        guard let cgImage = image.CGImage else {
+        guard let cgImage = image.cgImage else {
             return nil
         }
         
@@ -63,25 +63,29 @@ public struct RGBAImage {
         width = Int(image.size.width)
         height = Int(image.size.height)
         
-//        let bitsPerComponent = 8 // 픽셀의 한 요소당 1바이트
-//        let bytesPerPixels = 4 // RGBA 
+        // 4 * width * height 크기의 버퍼를 생성한다.
         let bytesPerRow = width * 4
-        let imageData = UnsafeMutablePointer<Pixel>.alloc(width * height)
+        let imageData = UnsafeMutablePointer<Pixel>.allocate(capacity: width * height)
+        
+        // 색상공간은 Device의 것을 따른다
         let colorSpace = CGColorSpaceCreateDeviceRGB()
         
-        var bitmapInfo: UInt32 = CGBitmapInfo.ByteOrder32Big.rawValue
-        bitmapInfo = bitmapInfo | CGImageAlphaInfo.PremultipliedLast.rawValue & CGBitmapInfo.AlphaInfoMask.rawValue
+        // BGRA로 비트맵을 만든다
+        var bitmapInfo: UInt32 = CGBitmapInfo.byteOrder32Big.rawValue
+        bitmapInfo = bitmapInfo | CGImageAlphaInfo.premultipliedLast.rawValue & CGBitmapInfo.alphaInfoMask.rawValue
         
-        guard let imageContext = CGBitmapContextCreate(imageData, width, height, 8, bytesPerRow, colorSpace, bitmapInfo) else {
+        // 비트맵 생성
+        guard let imageContext = CGContext(data: imageData, width: width, height: height, bitsPerComponent: 8, bytesPerRow: bytesPerRow, space: colorSpace, bitmapInfo: bitmapInfo) else {
             return nil
         }
         
-        CGContextDrawImage(imageContext, CGRect(origin: CGPointZero, size: image.size), cgImage)
+        // cgImage를 imageData에 채운다.
+        imageContext.draw(cgImage, in: CGRect(origin: .zero, size: image.size))
         
         pixels = UnsafeMutableBufferPointer<Pixel>(start: imageData, count: width * height)
     }
     
-
+    
     public init(width: Int, height: Int) {
         let image = RGBAImage.newUIImage(width: width, height: height)
         self.init(image: image)!
@@ -98,21 +102,26 @@ public struct RGBAImage {
         return cloneImage
     }
     
+    
     public func toUIImage() -> UIImage? {
         let colorSpace = CGColorSpaceCreateDeviceRGB()
-        var bitmapInfo: UInt32 = CGBitmapInfo.ByteOrder32Big.rawValue
+        var bitmapInfo: UInt32 = CGBitmapInfo.byteOrder32Big.rawValue
         let bytesPerRow = width * 4
         
-        bitmapInfo |= CGImageAlphaInfo.PremultipliedLast.rawValue & CGBitmapInfo.AlphaInfoMask.rawValue
+        bitmapInfo |= CGImageAlphaInfo.premultipliedLast.rawValue & CGBitmapInfo.alphaInfoMask.rawValue
         
-        let imageContext = CGBitmapContextCreateWithData(pixels.baseAddress, width, height, 8, bytesPerRow, colorSpace, bitmapInfo, nil, nil)
-        guard let cgImage = CGBitmapContextCreateImage(imageContext) else {
+        guard let imageContext = CGContext(data: pixels.baseAddress, width: width, height: height, bitsPerComponent: 8, bytesPerRow: bytesPerRow, space: colorSpace, bitmapInfo: bitmapInfo, releaseCallback: nil, releaseInfo: nil) else {
             return nil
         }
         
-        let image = UIImage(CGImage: cgImage)
+        guard let cgImage = imageContext.makeImage() else {
+            return nil
+        }
+        
+        let image = UIImage(cgImage: cgImage)
         return image
     }
+    
     
     public func pixel(x : Int, _ y : Int) -> Pixel? {
         guard x >= 0 && x < width && y >= 0 && y < height else {
@@ -132,11 +141,12 @@ public struct RGBAImage {
         pixels[address] = pixel
     }
     
-    public mutating func process( functor : (Pixel -> Pixel) ) {
+    public mutating func process( functor : ((Pixel) -> Pixel) ) {
         for y in 0..<height {
             for x in 0..<width {
                 let index = y * width + x
-                pixels[index] = functor(pixels[index])
+                let outPixel = functor(pixels[index])
+                pixels[index] = outPixel
             }
         }
     }
@@ -145,14 +155,13 @@ public struct RGBAImage {
         
     }
     
-    private static func newUIImage(width width: Int, height: Int) -> UIImage {
-        let size = CGSizeMake(CGFloat(width), CGFloat(height));
+    private static func newUIImage(width: Int, height: Int) -> UIImage {
+        let size = CGSize(width: CGFloat(width), height: CGFloat(height));
         UIGraphicsBeginImageContextWithOptions(size, true, 0);
-        UIColor.blackColor().setFill()
-        UIRectFill(CGRectMake(0, 0, size.width, size.height));
+        UIColor.black.setFill()
+        UIRectFill(CGRect(x: 0, y: 0, width: size.width, height: size.height))
         let image = UIGraphicsGetImageFromCurrentImageContext();
         UIGraphicsEndImageContext();
-        return image
+        return image!
     }
 }
-

@@ -7,6 +7,7 @@ let monet2 = RGBAImage(image: UIImage(named: "monet2")!)!
 let tiger  = RGBAImage(image: UIImage(named: "tiger")!)!
 
 ImageProcess.composite(monet1.clone(), monet2.clone(), tiger.clone()).toUIImage()
+
 ImageProcess.add(monet1.clone(), monet2.clone()).toUIImage()
 ImageProcess.sub(monet1.clone(), monet2.clone()).toUIImage()
 ImageProcess.mul(monet1.clone(), monet2.clone()).toUIImage()
