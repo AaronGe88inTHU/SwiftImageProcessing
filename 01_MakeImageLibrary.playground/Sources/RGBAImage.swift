@@ -2,28 +2,28 @@ import UIKit
 
 public struct Pixel {
     
-    //각 색상 컴포넌트는 ABGR 순으로 저장되어 있다.
+    // 각 색상 컴포넌트는 ABGR 순으로 저장되어 있다.
     public var value: UInt32
     
-    //red
+    // red
     public var R: UInt8 {
         get { return UInt8(value & 0xFF); }
         set { value = UInt32(newValue) | (value & 0xFFFFFF00) }
     }
     
-    //green
+    // green
     public var G: UInt8 {
         get { return UInt8((value >> 8) & 0xFF) }
         set { value = (UInt32(newValue) << 8) | (value & 0xFFFF00FF) }
     }
     
-    //blue
+    // blue
     public var B: UInt8 {
         get { return UInt8((value >> 16) & 0xFF) }
         set { value = (UInt32(newValue) << 16) | (value & 0xFF00FFFF) }
     }
     
-    //alpha
+    // alpha
     public var A: UInt8 {
         get { return UInt8((value >> 24) & 0xFF) }
         set { value = (UInt32(newValue) << 24) | (value & 0x00FFFFFF) }
