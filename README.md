@@ -23,6 +23,7 @@ This is example for pixel operation
 ```swift
 let rgba = RGBAImage(image: UIImage(named: "monet")!)!
 
+
 var totalR = 0
 var totalG = 0
 var totalB = 0
@@ -39,8 +40,12 @@ let avgR = totalR / pixelCount
 let avgG = totalG / pixelCount
 let avgB = totalB / pixelCount
 
-func contrast(image: RGBAImage) -> RGBAImage {
-    image.process { (var pixel) -> Pixel in
+
+
+func contrast(_ image: RGBAImage) -> RGBAImage {
+    
+    image.process { (pixel) -> Pixel in
+        var pixel = pixel
         let deltaR = Int(pixel.R) - avgR
         let deltaG = Int(pixel.G) - avgG
         let deltaB = Int(pixel.B) - avgB
@@ -52,6 +57,7 @@ func contrast(image: RGBAImage) -> RGBAImage {
     }
     return image
 }
+
 let newImage = contrast(rgba).toUIImage()
 ```
 ## Grab color space
@@ -60,9 +66,10 @@ let newImage = contrast(rgba).toUIImage()
 ![](art/03_grab_r.png)
 
 ```swift
-func grabR(image: RGBAImage) -> RGBAImage {
+func grabR(_ image: RGBAImage) -> RGBAImage {
     var outImage = image
-    outImage.process { (var pixel) -> Pixel in
+    outImage.process { (pixel) -> Pixel in
+        var pixel = pixel
         pixel.R = pixel.R
         pixel.G = 0
         pixel.B = 0
@@ -77,9 +84,10 @@ func grabR(image: RGBAImage) -> RGBAImage {
 ![](art/04_grab_g.png)
 
 ```swift
-func grabG(image: RGBAImage) -> RGBAImage {
+func grabG(_ image: RGBAImage) -> RGBAImage {
     var outImage = image
-    outImage.process { (var pixel) -> Pixel in
+    outImage.process { (pixel) -> Pixel in
+        var pixel = pixel
         pixel.R = 0
         pixel.G = pixel.G
         pixel.B = 0
@@ -93,9 +101,10 @@ func grabG(image: RGBAImage) -> RGBAImage {
 ![](art/05_grab_b.png)
 
 ```swift
-func grabB(image: RGBAImage) -> RGBAImage {
+func grabB(_ image: RGBAImage) -> RGBAImage {
     var outImage = image
-    outImage.process { (var pixel) -> Pixel in
+    outImage.process { (pixel) -> Pixel in
+        var pixel = pixel
         pixel.R = 0
         pixel.G = 0
         pixel.B = pixel.B
@@ -109,42 +118,43 @@ func grabB(image: RGBAImage) -> RGBAImage {
 ![](art/06_composite.png)
 
 ```
-public static func composite(rgbaImageList: RGBAImage...) -> RGBAImage {
-    let result : RGBAImage = RGBAImage(width:rgbaImageList[0].width, height: rgbaImageList[0].height)
-    for y in 0..<result.height {
-        for x in 0..<result.width {
-            
-            let index = y * result.width + x
-            var pixel = result.pixels[index]
-            
-            for rgba in rgbaImageList {
-                let rgbaPixel = rgba.pixels[index]
-                pixel.Rf = min(pixel.Rf + rgbaPixel.Rf, 1.0)
-                pixel.Gf = min(pixel.Gf + rgbaPixel.Gf, 1.0)
-                pixel.Bf = min(pixel.Bf + rgbaPixel.Bf, 1.0)
+public static func composite(_ rgbaImageList: RGBAImage...) -> RGBAImage {
+        let result : RGBAImage = RGBAImage(width:rgbaImageList[0].width, height: rgbaImageList[0].height)
+        for y in 0..<result.height {
+            for x in 0..<result.width {
+                
+                let index = y * result.width + x
+                var pixel = result.pixels[index]
+                
+                for rgba in rgbaImageList {
+                    let rgbaPixel = rgba.pixels[index]
+                    pixel.Rf = pixel.Rf + rgbaPixel.Rf
+                    pixel.Gf = pixel.Gf + rgbaPixel.Gf
+                    pixel.Bf = pixel.Bf + rgbaPixel.Bf
+                }
+                
+                result.pixels[index] = pixel
             }
-            
-            result.pixels[index] = pixel
         }
+        return result
     }
-    return result
-}
 ```
 
 ## RGB to Gray
 ![](art/07_rgb_to_gray.png)
 
 ```swift
-func gray5(image: RGBAImage) -> RGBAImage {
-    var outImage = image
-    outImage.process { (var pixel) -> Pixel in
-        let result = sqrt(pow(pixel.Rf, 2) + pow(pixel.Rf, 2) + pow(pixel.Rf, 2))/sqrt(3.0)
-        pixel.Rf = result
-        pixel.Gf = result
-        pixel.Bf = result
-        return pixel
-    }
-    return outImage
+public static func gray5(_ image: RGBAImage) -> RGBAImage {
+        var outImage = image
+        outImage.process { (pixel) -> Pixel in
+            var pixel = pixel
+            let result = sqrt(pow(pixel.Rf, 2) + pow(pixel.Rf, 2) + pow(pixel.Rf, 2))/sqrt(3.0)
+            pixel.Rf = result
+            pixel.Gf = result
+            pixel.Bf = result
+            return pixel
+        }
+        return outImage
 }
 let rgba5 = RGBAImage(image: UIImage(named: "monet")!)!
 gray5(rgba5).toUIImage()
@@ -154,7 +164,7 @@ gray5(rgba5).toUIImage()
 ![](art/08_split.png)
 
 ```swift
-public static func splitRGB(rgba: RGBAImage) -> (ByteImage, ByteImage, ByteImage) {
+public static func splitRGB(_ rgba: RGBAImage) -> (ByteImage, ByteImage, ByteImage) {
     let R = ByteImage(width: rgba.width, height: rgba.height)
     let G = ByteImage(width: rgba.width, height: rgba.height)
     let B = ByteImage(width: rgba.width, height: rgba.height)
@@ -165,7 +175,7 @@ public static func splitRGB(rgba: RGBAImage) -> (ByteImage, ByteImage, ByteImage
         G.pixels[index] = pixel.G.toBytePixel()
         B.pixels[index] = pixel.B.toBytePixel()
     }
-
+    
     return (R, G, B)
 }
 ```
@@ -175,7 +185,7 @@ public static func splitRGB(rgba: RGBAImage) -> (ByteImage, ByteImage, ByteImage
 ![](art/09_add_sub_mul_div.png)
 
 ```swift
-public static func op(functor : (Double, Double) -> Double, rgbaImage1: RGBAImage, rgbaImage2: RGBAImage) -> RGBAImage {
+public static func op(_ functor : (Double, Double) -> Double, rgbaImage1: RGBAImage, rgbaImage2: RGBAImage) -> RGBAImage {
     let result : RGBAImage = RGBAImage(width:rgbaImage1.width, height: rgbaImage1.height)
     for y in 0..<result.height {
         for x in 0..<result.width {
@@ -187,16 +197,16 @@ public static func op(functor : (Double, Double) -> Double, rgbaImage1: RGBAImag
             let rgba2Pixel = rgbaImage2.pixels[index]
             
             
-            pixel.Rf = min(functor(rgba1Pixel.Rf, rgba2Pixel.Rf), 1.0)
-            pixel.Gf = min(functor(rgba1Pixel.Gf, rgba2Pixel.Gf), 1.0)
-            pixel.Bf = min(functor(rgba1Pixel.Bf, rgba2Pixel.Bf), 1.0)
+            pixel.Rf = functor(rgba1Pixel.Rf, rgba2Pixel.Rf)
+            pixel.Gf = functor(rgba1Pixel.Gf, rgba2Pixel.Gf)
+            pixel.Bf = functor(rgba1Pixel.Bf, rgba2Pixel.Bf)
             
             result.pixels[index] = pixel
         }
     }
-    return result
-
+    return result   
 }
+
 public static func add(rgba1: RGBAImage, _ rgba2: RGBAImage) -> RGBAImage {
     return op((+), rgbaImage1: rgba1, rgbaImage2: rgba2)
 }
@@ -208,7 +218,7 @@ public static func add(rgba1: RGBAImage, _ rgba2: RGBAImage) -> RGBAImage {
 ![](art/11_blending.png)
 
 ```swift
-public static func blending(img1: RGBAImage, _ img2: RGBAImage, alpha: Double) -> RGBAImage {
+public static func blending(_ img1: RGBAImage, _ img2: RGBAImage, alpha: Double) -> RGBAImage {
     let result : RGBAImage = RGBAImage(width:img1.width, height: img1.height)
     for y in 0..<result.height {
         for x in 0..<result.width {
@@ -220,9 +230,9 @@ public static func blending(img1: RGBAImage, _ img2: RGBAImage, alpha: Double) -
             let pixel2 = img2.pixels[index]
             
             
-            pixel.Rf = min( alpha * pixel1.Rf + (1.0 - alpha) * pixel2.Rf, 1.0)
-            pixel.Gf = min( alpha * pixel1.Gf + (1.0 - alpha) * pixel2.Gf, 1.0)
-            pixel.Bf = min( alpha * pixel1.Bf + (1.0 - alpha) * pixel2.Bf, 1.0)
+            pixel.Rf = alpha * pixel1.Rf + (1.0 - alpha) * pixel2.Rf
+            pixel.Gf = alpha * pixel1.Gf + (1.0 - alpha) * pixel2.Gf
+            pixel.Bf = alpha * pixel1.Bf + (1.0 - alpha) * pixel2.Bf
             
             result.pixels[index] = pixel
         }
@@ -235,7 +245,7 @@ public static func blending(img1: RGBAImage, _ img2: RGBAImage, alpha: Double) -
 ![](art/12_brightness.png)
 
 ```swift
-public static func brightness(img1: RGBAImage, contrast: Double, brightness: Double) -> RGBAImage {
+public static func brightness(_ img1: RGBAImage, contrast: Double, brightness: Double) -> RGBAImage {
     let result : RGBAImage = RGBAImage(width:img1.width, height: img1.height)
     for y in 0..<result.height {
         for x in 0..<result.width {
@@ -245,9 +255,9 @@ public static func brightness(img1: RGBAImage, contrast: Double, brightness: Dou
             
             let pixel1 = img1.pixels[index]
             
-            pixel.Rf = min( pixel1.Rf * contrast + brightness, 1.0)
-            pixel.Gf = min( pixel1.Gf * contrast + brightness, 1.0)
-            pixel.Bf = min( pixel1.Bf * contrast + brightness, 1.0)
+            pixel.Rf = pixel1.Rf * contrast + brightness
+            pixel.Gf = pixel1.Gf * contrast + brightness
+            pixel.Bf = pixel1.Bf * contrast + brightness
             
             result.pixels[index] = pixel
         }
@@ -259,8 +269,8 @@ public static func brightness(img1: RGBAImage, contrast: Double, brightness: Dou
 ## Convolution
 
 ```swift
-public static func convolution(var image: ByteImage, mask: Array2D<Double>) -> ByteImage {
-        
+public static func convolution(_ image: ByteImage, mask: Array2D<Double>) -> ByteImage {
+    var image = image
     let height = image.height
     let width  = image.width
     
@@ -291,6 +301,7 @@ public static func convolution(var image: ByteImage, mask: Array2D<Double>) -> B
     }
     return image
 }
+
 ```
 
 ### Sharpening
