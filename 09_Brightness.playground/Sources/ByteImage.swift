@@ -95,7 +95,7 @@ public struct ByteImage {
         return image
     }
     
-    public func pixel(x : Int, _ y : Int) -> BytePixel? {
+    public func pixel(_ x : Int, _ y : Int) -> BytePixel? {
         guard x >= 0 && x < width && y >= 0 && y < height else {
             return nil
         }
@@ -104,7 +104,7 @@ public struct ByteImage {
         return pixels[address]
     }
     
-    public mutating func pixel(x : Int, _ y : Int, _ pixel: BytePixel) {
+    public mutating func pixel(_ x : Int, _ y : Int, _ pixel: BytePixel) {
         guard x >= 0 && x < width && y >= 0 && y < height else {
             return
         }

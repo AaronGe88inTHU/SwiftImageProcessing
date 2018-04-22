@@ -1,5 +1,9 @@
 import Foundation
 
+func clamp<T: Comparable>(_ value: T, lower: T, upper: T) -> T {
+    return min(max(value, lower), upper)
+}
+
 public class ImageProcess {
     
     public static func grabR(_ image: RGBAImage) -> RGBAImage {
@@ -485,10 +489,10 @@ public class ImageProcess {
                 
                 v = clamp(v, lower: 0.0, upper: 1.0)
                 print(v)
-                let pixel = BytePixel(value: v)
+                let pixel = BytePixel(value: UInt8(v))
                 let xx = x+(maskWidth-1)/2
                 let yy = y+(maskHeight-1)/2
-                image.setPixel(xx, yy, pixel)
+                image.pixel(xx, yy, pixel)
             }
         }
         return image

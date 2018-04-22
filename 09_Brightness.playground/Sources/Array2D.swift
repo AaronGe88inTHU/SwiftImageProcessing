@@ -2,17 +2,16 @@ import Foundation
 
 public class Array2D<T: Equatable> {
     
-    let cols: Int
-    let rows: Int
-    public var matrix: [T]
+    var cols:Int, rows:Int
+    public var matrix:[T]
     
-    public init(cols: Int, rows: Int, defaultValue: T) {
+    public init(cols:Int, rows:Int, _ defaultValue:T){
         self.cols = cols
         self.rows = rows
         matrix = Array(repeating:defaultValue,count:cols*rows)
     }
     
-    public  init(cols: Int, rows: Int, elements: [T]) {
+    public  init(cols:Int, rows:Int, _ elements : [T]) {
         self.cols = cols
         self.rows = rows
         self.matrix = Array(elements)

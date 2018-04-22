@@ -488,7 +488,6 @@ public class ImageProcess {
                 }
                 
                 v = clamp(v, lower: 0.0, upper: 1.0)
-                print(v)
                 let pixel = BytePixel(value: v)
                 let xx = x+(maskWidth-1)/2
                 let yy = y+(maskHeight-1)/2
