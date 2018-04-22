@@ -2,7 +2,8 @@
 
 This project contains swift playgrounds that demonstrate how to do pixel operations in swift.
 
- * Swift3 : checkout master branch
+ * Swift4 : checkout master branch
+ * Swift3.x : checkout syntax/swift3.x branch
  * Swift2.x : checkout syntax/swift2.x branch
 
 ## Thanks to RGBAImage
