@@ -31,7 +31,16 @@ public struct Pixel {
 }
 
 public struct RGBAImage {
-    public var pixels: UnsafeMutableBufferPointer<Pixel>
+    class WrappedPixels {
+        public var pixels: UnsafeMutableBufferPointer<Pixel>
+        init() {
+            pixels = UnsafeMutableBufferPointer(start: nil, count: 0)
+        }
+        deinit {
+            pixels.deallocate()
+        }
+    }
+    let wrappedPixels = WrappedPixels()
     public var width: Int
     public var height: Int
     
@@ -48,6 +57,8 @@ public struct RGBAImage {
         // 4 * width * height 크기의 버퍼를 생성한다.
         let bytesPerRow = width * 4
         let imageData = UnsafeMutablePointer<Pixel>.allocate(capacity: width * height)
+        //if we don't initialize it, the toUIImage() method will generate extra color.
+        imageData.initialize(repeating: Pixel(value: 0), count: width*height)
         
         // 색상공간은 Device의 것을 따른다
         let colorSpace = CGColorSpaceCreateDeviceRGB()
@@ -64,7 +75,7 @@ public struct RGBAImage {
         // cgImage를 imageData에 채운다.
         imageContext.draw(cgImage, in: CGRect(origin: .zero, size: image.size))
         
-        pixels = UnsafeMutableBufferPointer<Pixel>(start: imageData, count: width * height)
+        wrappedPixels.pixels = UnsafeMutableBufferPointer<Pixel>(start: imageData, count: width * height)
     }
     
     public func toUIImage() -> UIImage? {
@@ -74,7 +85,7 @@ public struct RGBAImage {
         
         bitmapInfo |= CGImageAlphaInfo.premultipliedLast.rawValue & CGBitmapInfo.alphaInfoMask.rawValue
         
-        guard let imageContext = CGContext(data: pixels.baseAddress, width: width, height: height, bitsPerComponent: 8, bytesPerRow: bytesPerRow, space: colorSpace, bitmapInfo: bitmapInfo, releaseCallback: nil, releaseInfo: nil) else {
+        guard let imageContext = CGContext(data: wrappedPixels.pixels.baseAddress, width: width, height: height, bitsPerComponent: 8, bytesPerRow: bytesPerRow, space: colorSpace, bitmapInfo: bitmapInfo, releaseCallback: nil, releaseInfo: nil) else {
             return nil
         }
         
